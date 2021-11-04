@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://linsencc.github.io</id>
+    <title>Gridea</title>
+    <updated>2021-11-04T12:52:21.396Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://linsencc.github.io"/>
+    <link rel="self" href="https://linsencc.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://linsencc.github.io/images/avatar.png</logo>
+    <icon>https://linsencc.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2021, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[ubuntu samba 共享文件夹设置]]></title>
+        <id>https://linsencc.github.io/post/ubuntu-samba-gong-xiang-wen-jian-jia-she-zhi/</id>
+        <link href="https://linsencc.github.io/post/ubuntu-samba-gong-xiang-wen-jian-jia-she-zhi/">
+        </link>
+        <updated>2021-11-04T11:14:48.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="ubuntu-samba-共享文件夹设置">ubuntu samba 共享文件夹设置</h2>
+<h4 id="1-无密码共享文件夹搭建">1. 无密码共享文件夹搭建</h4>
+<ol>
+<li>
+<p>使用apt-get安装samba</p>
+<p>sudo apt-get update  			# 更新apt-get软件列表</p>
+<p>sudo apt-get install samba   # 安装samba</p>
+<p>[注] <a href="https://blog.csdn.net/qq_19004627/article/details/79560818">apt-get update 更新软件列表，apt-get upgrade为更新软件（慎用，更新后可能会出现软件和驱动不兼容的情况）</a></p>
+</li>
+<li>
+<p>设置samba共享文件夹</p>
+<ol>
+<li>sudo mkdir /home/xiewr/sambashare			# 创建共享文件夹</li>
+<li>sudo chmod 777 /home/xiewr/sambashare  # 设置文件夹权限使访客用户有读写权限</li>
+</ol>
+</li>
+<li>
+<p>编辑 /etc/samba/smb.conf配置文件，追加下面代码</p>
+<pre><code class="language-shell">[sambashare]
+   comment = share folder of AI Group	# 说明字段
+   path = /home/xiewr/sambashare		# 分享文件夹路径 
+   browseable = yes 					# 指定该共享是否可以浏览
+   read only = no						# 设置可读写
+   guest ok = yes						# 设置访客可访问
+</code></pre>
+</li>
+<li>
+<p>重启samba服务</p>
+<p>sudo service smbd restart</p>
+</li>
+<li>
+<p>更新防火墙规则以允许Samba（设置一次即可）</p>
+<p>sudo ufw allow samba</p>
+</li>
+</ol>
+<h4 id="2-无密码共享文件夹搭建">2. 无密码共享文件夹搭建</h4>
+<ol>
+<li>
+<p>添加samba账户（必须为linux系统中已有的账号，samba不使用linux原账号密码，因此这里需要设置一个新的密码）</p>
+<p>sudo smbpasswd -a username</p>
+<p>[注]在服务器的管理中，经常需要启动samba、mysql、elasticsearch、nginx服务，但又不希望以root的方式启动（有时候是强制性的，比如elasticsearch就禁止使用root账号启动服务），这时候就需要为它们创建单独的服务账号，同时为了安全性的考虑，可设置禁止登陆shell的账号作为samba账号。</p>
+</li>
+<li>
+<p>设置valid users选项为1中的账号（这里为linsen-smb）</p>
+<pre><code class="language-shell">[sambashare]
+   comment = share folder of AI Group	# 说明字段
+   path = /home/xiewr/sambashare		# 分享文件夹路径 
+   browseable = yes 					# 指定该共享是否可以浏览
+   read only = no						# 设置可读写
+   valid users = linsen-smb				# 设置可访问samba用户
+</code></pre>
+</li>
+<li>
+<p>重启samba服务</p>
+<p>sudo service smbd restart</p>
+</li>
+<li>
+<p>更新防火墙规则以允许Samba（设置一次即可）</p>
+<p>sudo ufw allow samba</p>
+</li>
+</ol>
+<h4 id="3-可能出现的问题">3. 可能出现的问题</h4>
+<ol>
+<li>
+<p>连接时出来这个提示: 不允许一个用户使用一个以上用户名与一个服务器或共享资源的多重连接。中断与此服务器或共享资源的连接，然后在试一次</p>
+<p><strong>原因：</strong></p>
+<p>​	现在使用的机器曾经与当前服务器有过连接，连接断开后操作系统未将连接状态清除。</p>
+<p><strong>解决方案：</strong></p>
+<ol>
+<li>打开cmd命令窗口：</li>
+<li>输入命令：<strong>net use</strong>查看你当前与网络资源的连接，例如驱动器映射、IPC连接。</li>
+<li>用<strong>net use * /del /y</strong>命令中断开所有连接.</li>
+<li>在重新登录就可以连接上了。</li>
+</ol>
+</li>
+</ol>
+<p>参考文档：</p>
+<ol>
+<li>Ubuntu tutorial - Install and Configure Samba: https://ubuntu.com/tutorials/install-and-configure-samba#1-overview</li>
+<li>Ubuntu doc - Samba/SambaServerGuide: https://help.ubuntu.com/community/Samba/SambaServerGuide?<em>ga=2.238671872.1675434904.1635755594-2104755075.1635755594#Samba_Server_Configuration</em>-_Simple</li>
+</ol>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Hello Gridea]]></title>
+        <id>https://linsencc.github.io/post/hello-gridea/</id>
+        <link href="https://linsencc.github.io/post/hello-gridea/">
+        </link>
+        <updated>2018-12-11T16:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+<!-- more -->
+<p><a href="https://github.com/getgridea/gridea">Github</a><br>
+<a href="https://gridea.dev/">Gridea 主页</a><br>
+<a href="http://fehey.com/">示例网站</a></p>
+<h2 id="特性">特性👇</h2>
+<p>📝  你可以使用最酷的 <strong>Markdown</strong> 语法，进行快速创作</p>
+<p>🌉  你可以给文章配上精美的封面图和在文章任意位置插入图片</p>
+<p>🏷️  你可以对文章进行标签分组</p>
+<p>📋  你可以自定义菜单，甚至可以创建外部链接菜单</p>
+<p>💻  你可以在 <strong>Windows</strong>，<strong>MacOS</strong> 或 <strong>Linux</strong> 设备上使用此客户端</p>
+<p>🌎  你可以使用 <strong>𝖦𝗂𝗍𝗁𝗎𝖻 𝖯𝖺𝗀𝖾𝗌</strong> 或 <strong>Coding Pages</strong> 向世界展示，未来将支持更多平台</p>
+<p>💬  你可以进行简单的配置，接入 <a href="https://github.com/gitalk/gitalk">Gitalk</a> 或 <a href="https://github.com/SukkaW/DisqusJS">DisqusJS</a> 评论系统</p>
+<p>🇬🇧  你可以使用<strong>中文简体</strong>或<strong>英语</strong></p>
+<p>🌁  你可以任意使用应用内默认主题或任意第三方主题，强大的主题自定义能力</p>
+<p>🖥  你可以自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步</p>
+<p>🌱 当然 <strong>Gridea</strong> 还很年轻，有很多不足，但请相信，它会不停向前 🏃</p>
+<p>未来，它一定会成为你离不开的伙伴</p>
+<p>尽情发挥你的才华吧！</p>
+<p>😘 Enjoy~</p>
+]]></content>
+    </entry>
+</feed>

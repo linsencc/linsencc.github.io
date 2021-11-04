@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ubuntu samba 共享文件夹设置 | Gridea</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://linsencc.github.io/favicon.ico?v=1636030249870">
+<link rel="stylesheet" href="https://linsencc.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ubuntu samba 共享文件夹设置
+1. 无密码共享文件夹搭建
+
+
+使用apt-get安装samba
+sudo apt-get update  			# 更新apt-get软件列表
+sudo apt-get install samba..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://linsencc.github.io">
+        <img src="https://linsencc.github.io/images/avatar.png?v=1636030249870" class="site-logo">
+        <h1 class="site-title">Gridea</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://linsencc.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ubuntu samba 共享文件夹设置</h2>
+            <div class="post-date">2021-11-04</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="ubuntu-samba-共享文件夹设置">ubuntu samba 共享文件夹设置</h2>
+<h4 id="1-无密码共享文件夹搭建">1. 无密码共享文件夹搭建</h4>
+<ol>
+<li>
+<p>使用apt-get安装samba</p>
+<p>sudo apt-get update  			# 更新apt-get软件列表</p>
+<p>sudo apt-get install samba   # 安装samba</p>
+<p>[注] <a href="https://blog.csdn.net/qq_19004627/article/details/79560818">apt-get update 更新软件列表，apt-get upgrade为更新软件（慎用，更新后可能会出现软件和驱动不兼容的情况）</a></p>
+</li>
+<li>
+<p>设置samba共享文件夹</p>
+<ol>
+<li>sudo mkdir /home/xiewr/sambashare			# 创建共享文件夹</li>
+<li>sudo chmod 777 /home/xiewr/sambashare  # 设置文件夹权限使访客用户有读写权限</li>
+</ol>
+</li>
+<li>
+<p>编辑 /etc/samba/smb.conf配置文件，追加下面代码</p>
+<pre><code class="language-shell">[sambashare]
+   comment = share folder of AI Group	# 说明字段
+   path = /home/xiewr/sambashare		# 分享文件夹路径 
+   browseable = yes 					# 指定该共享是否可以浏览
+   read only = no						# 设置可读写
+   guest ok = yes						# 设置访客可访问
+</code></pre>
+</li>
+<li>
+<p>重启samba服务</p>
+<p>sudo service smbd restart</p>
+</li>
+<li>
+<p>更新防火墙规则以允许Samba（设置一次即可）</p>
+<p>sudo ufw allow samba</p>
+</li>
+</ol>
+<h4 id="2-无密码共享文件夹搭建">2. 无密码共享文件夹搭建</h4>
+<ol>
+<li>
+<p>添加samba账户（必须为linux系统中已有的账号，samba不使用linux原账号密码，因此这里需要设置一个新的密码）</p>
+<p>sudo smbpasswd -a username</p>
+<p>[注]在服务器的管理中，经常需要启动samba、mysql、elasticsearch、nginx服务，但又不希望以root的方式启动（有时候是强制性的，比如elasticsearch就禁止使用root账号启动服务），这时候就需要为它们创建单独的服务账号，同时为了安全性的考虑，可设置禁止登陆shell的账号作为samba账号。</p>
+</li>
+<li>
+<p>设置valid users选项为1中的账号（这里为linsen-smb）</p>
+<pre><code class="language-shell">[sambashare]
+   comment = share folder of AI Group	# 说明字段
+   path = /home/xiewr/sambashare		# 分享文件夹路径 
+   browseable = yes 					# 指定该共享是否可以浏览
+   read only = no						# 设置可读写
+   valid users = linsen-smb				# 设置可访问samba用户
+</code></pre>
+</li>
+<li>
+<p>重启samba服务</p>
+<p>sudo service smbd restart</p>
+</li>
+<li>
+<p>更新防火墙规则以允许Samba（设置一次即可）</p>
+<p>sudo ufw allow samba</p>
+</li>
+</ol>
+<h4 id="3-可能出现的问题">3. 可能出现的问题</h4>
+<ol>
+<li>
+<p>连接时出来这个提示: 不允许一个用户使用一个以上用户名与一个服务器或共享资源的多重连接。中断与此服务器或共享资源的连接，然后在试一次</p>
+<p><strong>原因：</strong></p>
+<p>​	现在使用的机器曾经与当前服务器有过连接，连接断开后操作系统未将连接状态清除。</p>
+<p><strong>解决方案：</strong></p>
+<ol>
+<li>打开cmd命令窗口：</li>
+<li>输入命令：<strong>net use</strong>查看你当前与网络资源的连接，例如驱动器映射、IPC连接。</li>
+<li>用<strong>net use * /del /y</strong>命令中断开所有连接.</li>
+<li>在重新登录就可以连接上了。</li>
+</ol>
+</li>
+</ol>
+<p>参考文档：</p>
+<ol>
+<li>Ubuntu tutorial - Install and Configure Samba: https://ubuntu.com/tutorials/install-and-configure-samba#1-overview</li>
+<li>Ubuntu doc - Samba/SambaServerGuide: https://help.ubuntu.com/community/Samba/SambaServerGuide?<em>ga=2.238671872.1675434904.1635755594-2104755075.1635755594#Samba_Server_Configuration</em>-_Simple</li>
+</ol>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://linsencc.github.io/post/hello-gridea/">
+                  <h3 class="post-title">
+                    Hello Gridea
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
